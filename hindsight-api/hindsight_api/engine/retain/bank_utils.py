@@ -70,6 +70,8 @@ async def get_bank_profile(pool, bank_id: str) -> BankProfile:
             )
 
         # Bank doesn't exist, create with defaults
+        # Use "User" as default name instead of bank_id to avoid user_id leaking into opinion entities
+        default_name = "User"
         await conn.execute(
             f"""
             INSERT INTO {fq_table("banks")} (bank_id, name, disposition, background)
@@ -77,12 +79,12 @@ async def get_bank_profile(pool, bank_id: str) -> BankProfile:
             ON CONFLICT (bank_id) DO NOTHING
             """,
             bank_id,
-            bank_id,  # Default name is the bank_id
+            default_name,
             json.dumps(DEFAULT_DISPOSITION),
             "",
         )
 
-        return BankProfile(name=bank_id, disposition=DispositionTraits(**DEFAULT_DISPOSITION), background="")
+        return BankProfile(name=default_name, disposition=DispositionTraits(**DEFAULT_DISPOSITION), background="")
 
 
 async def update_bank_disposition(pool, bank_id: str, disposition: dict[str, int]) -> None:
