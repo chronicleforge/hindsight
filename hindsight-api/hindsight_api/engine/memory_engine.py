@@ -3357,12 +3357,15 @@ Guidelines:
         # Build search query: enhance with search_context or fall back to context
         # This ensures relevant memories are found even when the query itself is abstract
         # (e.g., "Was that a good solution?" + context="Auth bug fix" → searches for auth bug memories)
+        # Limit auto-added context to 256 chars to avoid embedding token limit issues
+        _MAX_AUTO_CONTEXT_CHARS = 256
         if search_context is not None:
             # Explicit search_context provided (empty string "" = no enhancement)
             search_query = f"{query} {search_context}".strip() if search_context else query
         elif context:
-            # Fallback: use context for search enhancement
-            search_query = f"{query} {context}"
+            # Fallback: use truncated context for search enhancement
+            truncated_context = context[:_MAX_AUTO_CONTEXT_CHARS]
+            search_query = f"{query} {truncated_context}"
         else:
             # No context at all
             search_query = query
